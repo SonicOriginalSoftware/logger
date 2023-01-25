@@ -11,13 +11,13 @@ func TestDefaultLoggerError(t *testing.T) {
 }
 
 func TestDefaultLoggerWarn(t *testing.T) {
-	logger.DefaultLogger.Warn("Test error message")
+	logger.DefaultLogger.Warn("Test warn message")
 }
 
 func TestDefaultLoggerInfo(t *testing.T) {
-	logger.DefaultLogger.Info("Test error message")
+	logger.DefaultLogger.Info("Test info message")
 }
 
 func TestDefaultLoggerDebug(t *testing.T) {
-	logger.DefaultLogger.Debug("Test error message")
+	logger.DefaultLogger.Debug("Test debug message")
 }
