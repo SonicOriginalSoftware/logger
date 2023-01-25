@@ -7,7 +7,20 @@ import (
 )
 
 func TestDefaultLoggerError(t *testing.T) {
-	logger.DefaultLogger.Error("Test error message")
+	message := "Test error message"
+
+	logger.DefaultLogger.Error(message)
+
+	receivedMessage := ""
+
+	if receivedMessage != message {
+		t.Logf(
+			"Piped message not equal to test message: '%v' != '%v'",
+			receivedMessage,
+			message,
+		)
+		t.FailNow()
+	}
 }
 
 func TestDefaultLoggerWarn(t *testing.T) {

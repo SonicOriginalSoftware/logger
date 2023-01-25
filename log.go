@@ -16,7 +16,7 @@ const flags = log.Ldate | log.Ltime | log.Lmsgprefix
 const DefaultSeverity int64 = Error | Warn
 
 // DefaultLogger is an unprefixed logger using the default severity
-var DefaultLogger *Logger
+var DefaultLogger = New("", DefaultSeverity, os.Stdout)
 
 const (
 	Error = 1 << iota // Error shows error log messages
@@ -33,14 +33,6 @@ type Log interface {
 	Error(format string, v ...any)
 }
 
-func init() {
-	severity := DefaultSeverity
-
-	determineSeverity(&severity)
-
-	DefaultLogger = New("", severity)
-}
-
 // Logger is used to log to appropriate levels
 type Logger struct {
 	warn  *log.Logger
@@ -51,7 +43,29 @@ type Logger struct {
 	severity int64
 }
 
-func determineSeverity(severity *int64) {
+func new(prefix, defaultPrefix string, writer io.Writer) *log.Logger {
+	if prefix != "" {
+		defaultPrefix = fmt.Sprintf("%v[%v] ", defaultPrefix, prefix)
+	}
+	return log.New(writer, defaultPrefix, flags)
+}
+
+// New returns a valid logger ready for use
+func New(prefix string, severity int64, writer io.Writer) (logger *Logger) {
+	logger = &Logger{
+		warn:     new(prefix, "[WARN] ", writer),
+		info:     new(prefix, "[INFO] ", writer),
+		debug:    new(prefix, "[DEBUG] ", writer),
+		err:      new(prefix, "[ERROR] ", writer),
+		severity: severity,
+	}
+
+	logger.determineSeverity()
+
+	return
+}
+
+func (logger *Logger) determineSeverity() {
 	var level int64
 	var err error
 
@@ -63,27 +77,7 @@ func determineSeverity(severity *int64) {
 		level = DefaultSeverity
 	}
 
-	*severity = level
-}
-
-// New returns a valid instantiated logger
-func New(prefix string, severity int64) *Logger {
-	determineSeverity(&severity)
-
-	return &Logger{
-		warn:     new(prefix, "[WARN] ", os.Stdout),
-		info:     new(prefix, "[INFO] ", os.Stdout),
-		debug:    new(prefix, "[DEBUG] ", os.Stdout),
-		err:      new(prefix, "[ERROR] ", os.Stderr),
-		severity: severity,
-	}
-}
-
-func new(prefix, defaultPrefix string, writer io.Writer) *log.Logger {
-	if prefix != "" {
-		defaultPrefix = fmt.Sprintf("%v[%v] ", defaultPrefix, prefix)
-	}
-	return log.New(writer, defaultPrefix, flags)
+	logger.severity = level
 }
 
 // Info a message
