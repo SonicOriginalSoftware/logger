@@ -19,6 +19,17 @@ const DefaultSeverity int64 = Error | Warn
 var DefaultLogger = New("", DefaultSeverity, os.Stdout)
 
 const (
+	// ErrorPrefix is the prefix used for error messages
+	ErrorPrefix = "ERROR"
+	// WarnPrefix is the prefix used for warning messages
+	WarnPrefix = "WARN"
+	// InfoPrefix is the prefix used for informational messages
+	InfoPrefix = "INFO"
+	// DebugPrefix is the prefix used for debug messages
+	DebugPrefix = "DEBUG"
+)
+
+const (
 	Error = 1 << iota // Error shows error log messages
 	Warn              // Warn shows warning log messages
 	Info              // Info shows info log messages
@@ -53,10 +64,10 @@ func new(prefix, defaultPrefix string, writer io.Writer) *log.Logger {
 // New returns a valid logger ready for use
 func New(prefix string, severity int64, writer io.Writer) (logger *Logger) {
 	logger = &Logger{
-		warn:     new(prefix, "[WARN] ", writer),
-		info:     new(prefix, "[INFO] ", writer),
-		debug:    new(prefix, "[DEBUG] ", writer),
-		err:      new(prefix, "[ERROR] ", writer),
+		warn:     new(prefix, fmt.Sprintf("[%v] ", WarnPrefix), writer),
+		info:     new(prefix, fmt.Sprintf("[%v] ", InfoPrefix), writer),
+		debug:    new(prefix, fmt.Sprintf("[%v] ", DebugPrefix), writer),
+		err:      new(prefix, fmt.Sprintf("[%v] ", ErrorPrefix), writer),
 		severity: severity,
 	}
 
