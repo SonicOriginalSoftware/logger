@@ -83,7 +83,7 @@ func (logger *Logger) determineSeverity() {
 		level, err = strconv.ParseInt(rawLevel, 10, 32)
 	}
 	if !defined || err != nil {
-		level = DefaultSeverity
+		level = logger.severity
 	}
 
 	logger.severity = level

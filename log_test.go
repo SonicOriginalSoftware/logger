@@ -30,9 +30,9 @@ func assert(t *testing.T, testCall callback, message, channel string, writer *st
 	}
 }
 
-func prepare(mask int64) (writer *strings.Builder, testLogger *logger.Logger) {
+func prepare(severity int64) (writer *strings.Builder, testLogger *logger.Logger) {
 	writer = &strings.Builder{}
-	testLogger = logger.New(prefix, mask, writer)
+	testLogger = logger.New(prefix, severity, writer)
 	return
 }
 
