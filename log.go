@@ -10,15 +10,12 @@ import (
 	"strconv"
 )
 
-const flags = log.Ldate | log.Ltime | log.Lmsgprefix
-
-// DefaultSeverity shows error and warn log messages
-const DefaultSeverity int64 = Error | Warn
-
-// DefaultLogger is an unprefixed logger using the default severity
-var DefaultLogger = New("", DefaultSeverity, os.Stdout)
-
 const (
+	Error = 1 << iota // Error shows error log messages
+	Warn              // Warn shows warning log messages
+	Info              // Info shows info log messages
+	Debug             // Debug shows debug log messages
+
 	// ErrorPrefix is the prefix used for error messages
 	ErrorPrefix = "ERROR"
 	// WarnPrefix is the prefix used for warning messages
@@ -27,14 +24,15 @@ const (
 	InfoPrefix = "INFO"
 	// DebugPrefix is the prefix used for debug messages
 	DebugPrefix = "DEBUG"
+
+	flags = log.Ldate | log.Ltime | log.Lmsgprefix
+
+	// DefaultSeverity shows error, warn, and info log messages
+	DefaultSeverity int64 = Error | Warn | Info
 )
 
-const (
-	Error = 1 << iota // Error shows error log messages
-	Warn              // Warn shows warning log messages
-	Info              // Info shows info log messages
-	Debug             // Debug shows debug log messages
-)
+// DefaultLogger is an unprefixed logger using the default severity
+var DefaultLogger = New("", DefaultSeverity, os.Stdout)
 
 // Log defines a general logger
 type Log interface {
