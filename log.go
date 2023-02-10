@@ -10,25 +10,28 @@ import (
 	"strconv"
 )
 
-const (
-	Error = 1 << iota // Error shows error log messages
-	Warn              // Warn shows warning log messages
-	Info              // Info shows info log messages
-	Debug             // Debug shows debug log messages
+// Severity is an alias for an int64
+type Severity = int64
 
-	// ErrorPrefix is the prefix used for error messages
-	ErrorPrefix = "ERROR"
-	// WarnPrefix is the prefix used for warning messages
-	WarnPrefix = "WARN"
-	// InfoPrefix is the prefix used for informational messages
-	InfoPrefix = "INFO"
-	// DebugPrefix is the prefix used for debug messages
-	DebugPrefix = "DEBUG"
+const (
+	Error Severity = 1 << iota // Error shows error log messages
+	Warn                       // Warn shows warning log messages
+	Info                       // Info shows info log messages
+	Debug                      // Debug shows debug log messages
+
+	// ErrorChannelLabel is the prefix used for error messages
+	ErrorChannelLabel = "ERROR"
+	// WarnChannelLabel is the prefix used for warning messages
+	WarnChannelLabel = "WARN"
+	// InfoChannelLabel is the prefix used for informational messages
+	InfoChannelLabel = "INFO"
+	// DebugChannelLabel is the prefix used for debug messages
+	DebugChannelLabel = "DEBUG"
 
 	flags = log.Ldate | log.Ltime | log.Lmsgprefix
 
 	// DefaultSeverity shows error, warn, and info log messages
-	DefaultSeverity int64 = Error | Warn | Info
+	DefaultSeverity Severity = Error | Warn | Info
 )
 
 // DefaultLogger is an unprefixed logger using the default severity
@@ -49,33 +52,18 @@ type Logger struct {
 	debug *log.Logger
 	err   *log.Logger
 
-	severity int64
+	Severity Severity
 }
 
 func new(prefix, defaultPrefix string, writer io.Writer) *log.Logger {
 	if prefix != "" {
-		defaultPrefix = fmt.Sprintf("%v[%v] ", defaultPrefix, prefix)
+		prefix = fmt.Sprintf("%v[%v] ", defaultPrefix, prefix)
 	}
-	return log.New(writer, defaultPrefix, flags)
-}
-
-// New returns a valid logger ready for use
-func New(prefix string, severity int64, writer io.Writer) (logger *Logger) {
-	logger = &Logger{
-		warn:     new(prefix, fmt.Sprintf("[%v] ", WarnPrefix), writer),
-		info:     new(prefix, fmt.Sprintf("[%v] ", InfoPrefix), writer),
-		debug:    new(prefix, fmt.Sprintf("[%v] ", DebugPrefix), writer),
-		err:      new(prefix, fmt.Sprintf("[%v] ", ErrorPrefix), writer),
-		severity: severity,
-	}
-
-	logger.determineSeverity()
-
-	return
+	return log.New(writer, prefix, flags)
 }
 
 func (logger *Logger) determineSeverity() {
-	var level int64
+	var level Severity
 	var err error
 
 	rawLevel, defined := os.LookupEnv("LOGLEVEL")
@@ -83,15 +71,35 @@ func (logger *Logger) determineSeverity() {
 		level, err = strconv.ParseInt(rawLevel, 10, 32)
 	}
 	if !defined || err != nil {
-		level = logger.severity
+		level = logger.Severity
 	}
 
-	logger.severity = level
+	logger.Severity = level
+}
+
+// New returns a valid logger ready for use
+func New(prefix string, severity Severity, writer io.Writer) (logger *Logger) {
+	logger = &Logger{
+		warn:     new(prefix, fmt.Sprintf("[%v] ", WarnChannelLabel), writer),
+		info:     new(prefix, fmt.Sprintf("[%v] ", InfoChannelLabel), writer),
+		debug:    new(prefix, fmt.Sprintf("[%v] ", DebugChannelLabel), writer),
+		err:      new(prefix, fmt.Sprintf("[%v] ", ErrorChannelLabel), writer),
+		Severity: severity,
+	}
+
+	logger.determineSeverity()
+
+	return
+}
+
+// ChannelEnabled returns whether the severity is enabled (prints to the log)
+func (logger *Logger) ChannelEnabled(channel Severity) bool {
+	return logger.Severity&channel != 0
 }
 
 // Info a message
 func (logger *Logger) Info(format string, v ...any) {
-	if logger.severity&Info == 0 {
+	if !logger.ChannelEnabled(Info) {
 		return
 	}
 	logger.info.Printf(format, v...)
@@ -99,7 +107,7 @@ func (logger *Logger) Info(format string, v ...any) {
 
 // Debug a message
 func (logger *Logger) Debug(format string, v ...any) {
-	if logger.severity&Debug == 0 {
+	if !logger.ChannelEnabled(Debug) {
 		return
 	}
 	logger.debug.Printf(format, v...)
@@ -107,7 +115,7 @@ func (logger *Logger) Debug(format string, v ...any) {
 
 // Warn a message
 func (logger *Logger) Warn(format string, v ...any) {
-	if logger.severity&Warn == 0 {
+	if !logger.ChannelEnabled(Warn) {
 		return
 	}
 	logger.warn.Printf(format, v...)
@@ -115,7 +123,7 @@ func (logger *Logger) Warn(format string, v ...any) {
 
 // Error a message
 func (logger *Logger) Error(format string, v ...any) {
-	if logger.severity&Error == 0 {
+	if !logger.ChannelEnabled(Error) {
 		return
 	}
 	logger.err.Printf(format, v...)

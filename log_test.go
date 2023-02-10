@@ -18,104 +18,191 @@ const (
 
 type callback func(f string, v ...any)
 
-func assert(t *testing.T, testCall callback, message, channel string, writer *strings.Builder) {
-	testCall(message)
-
-	expectedSuffix := fmt.Sprintf("[%v] [%v] %v\n", channel, prefix, message)
-	receivedMessage := writer.String()
-	matches := strings.HasSuffix(receivedMessage, expectedSuffix)
-
-	if !matches {
-		t.Errorf("'%v' != '%v'", receivedMessage, message)
-	}
-}
-
-func prepare(severity int64) (writer *strings.Builder, testLogger *logger.Logger) {
+func prepare(severity logger.Severity) (writer *strings.Builder, testLogger *logger.Logger) {
 	writer = &strings.Builder{}
 	testLogger = logger.New(prefix, severity, writer)
 	return
 }
 
-func defaultError(t *testing.T) {
-	writer, testLogger := prepare(logger.DefaultSeverity)
-	assert(t, testLogger.Error, testErrorMessage, logger.ErrorPrefix, writer)
+func runTest(
+	t *testing.T,
+	testLogger *logger.Logger,
+	testCall callback,
+	channel logger.Severity,
+	message, channelLabel string,
+	writer *strings.Builder,
+) {
+	testCall(message)
+
+	if !testLogger.ChannelEnabled(channel) {
+		return
+	}
+
+	receivedMessage := writer.String()
+	expectedSuffix := fmt.Sprintf("[%v] [%v] %v\n", channelLabel, prefix, message)
+
+	if !strings.HasSuffix(receivedMessage, expectedSuffix) {
+		t.Errorf("'%v' != '%v'", message, receivedMessage)
+	}
 }
 
-func onlyError(t *testing.T) {
-	writer, testLogger := prepare(logger.Error)
-	assert(t, testLogger.Error, testErrorMessage, logger.ErrorPrefix, writer)
+func defaultError(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	loggerSeverity := logger.DefaultSeverity
+	writer, testLogger := prepare(loggerSeverity)
+	testFunction := testLogger.Error
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func exceptError(t *testing.T) {
-	writer, testLogger := prepare(logger.Warn | logger.Info | logger.Debug)
-	assert(t, testLogger.Error, testErrorMessage, logger.ErrorPrefix, writer)
+func onlyError(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	severity := logger.Error
+	writer, testLogger := prepare(severity)
+	testFunction := testLogger.Error
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func defaultWarn(t *testing.T) {
-	writer, testLogger := prepare(logger.DefaultSeverity)
-	assert(t, testLogger.Warn, testWarnMessage, logger.WarnPrefix, writer)
+func exceptError(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	severity := logger.Warn | logger.Info | logger.Debug
+	writer, testLogger := prepare(severity)
+	testFunction := testLogger.Debug
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func onlyWarn(t *testing.T) {
-	writer, testLogger := prepare(logger.Warn)
-	assert(t, testLogger.Warn, testWarnMessage, logger.WarnPrefix, writer)
+func defaultWarn(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	severity := logger.DefaultSeverity
+	writer, testLogger := prepare(severity)
+	testFunction := testLogger.Warn
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func exceptWarn(t *testing.T) {
-	writer, testLogger := prepare(logger.Error | logger.Info | logger.Debug)
-	assert(t, testLogger.Warn, testWarnMessage, logger.WarnPrefix, writer)
+func onlyWarn(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	severity := logger.Warn
+	writer, testLogger := prepare(severity)
+	testFunction := testLogger.Warn
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func defaultInfo(t *testing.T) {
-	writer, testLogger := prepare(logger.DefaultSeverity)
-	assert(t, testLogger.Info, testInfoMessage, logger.InfoPrefix, writer)
+func exceptWarn(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	severity := logger.Error | logger.Info | logger.Debug
+	writer, testLogger := prepare(severity)
+	testFunction := testLogger.Debug
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func onlyInfo(t *testing.T) {
-	writer, testLogger := prepare(logger.Info)
-	assert(t, testLogger.Info, testInfoMessage, logger.InfoPrefix, writer)
+func defaultInfo(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	severity := logger.DefaultSeverity
+	writer, testLogger := prepare(severity)
+	testFunction := testLogger.Info
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func exceptInfo(t *testing.T) {
-	writer, testLogger := prepare(logger.Error | logger.Warn | logger.Debug)
-	assert(t, testLogger.Info, testInfoMessage, logger.InfoPrefix, writer)
+func onlyInfo(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	severity := logger.Info
+	writer, testLogger := prepare(severity)
+	testFunction := testLogger.Info
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func defaultDebug(t *testing.T) {
-	writer, testLogger := prepare(logger.DefaultSeverity)
-	assert(t, testLogger.Debug, "Test debug message", logger.DebugPrefix, writer)
+func exceptInfo(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	severity := logger.Error | logger.Warn | logger.Debug
+	writer, testLogger := prepare(severity)
+	testFunction := testLogger.Debug
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func onlyDebug(t *testing.T) {
-	writer, testLogger := prepare(logger.Debug)
-	assert(t, testLogger.Debug, "Test debug message", logger.DebugPrefix, writer)
+func defaultDebug(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	severity := logger.DefaultSeverity
+	writer, testLogger := prepare(severity)
+	testFunction := testLogger.Debug
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func exceptDebug(t *testing.T) {
-	writer, testLogger := prepare(logger.Error | logger.Warn | logger.Info)
-	assert(t, testLogger.Debug, "Test debug message", logger.DebugPrefix, writer)
+func onlyDebug(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	severity := logger.Debug
+	writer, testLogger := prepare(severity)
+	testFunction := testLogger.Debug
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
+}
+
+func exceptDebug(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	severity := logger.Error | logger.Warn | logger.Info
+	writer, testLogger := prepare(severity)
+	testFunction := testLogger.Debug
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
 func TestError(t *testing.T) {
-	t.Run("Default Error", defaultError)
-	t.Run("Only Error", onlyError)
-	t.Run("Except Error", exceptError)
+	channel := logger.Error
+	message := testErrorMessage
+	channelLabel := logger.ErrorChannelLabel
+
+	t.Run("Default Error", func(t *testing.T) {
+		defaultError(t, channel, channelLabel, prefix, message)
+	})
+	t.Run("Only Error", func(t *testing.T) {
+		onlyError(t, channel, channelLabel, prefix, message)
+	})
+
+	t.Run("Except Error", func(t *testing.T) {
+		exceptError(t, channel, channelLabel, prefix, message)
+	})
 }
 
 func TestWarn(t *testing.T) {
-	t.Run("Default Warn", defaultWarn)
-	t.Run("Only Warn", onlyWarn)
-	t.Run("Except Warn", exceptWarn)
+	channel := logger.Error
+	message := testWarnMessage
+	channelLabel := logger.WarnChannelLabel
+
+	t.Run("Default Warn", func(t *testing.T) {
+		defaultWarn(t, channel, channelLabel, prefix, message)
+	})
+	t.Run("Only Warn", func(t *testing.T) {
+		onlyWarn(t, channel, channelLabel, prefix, message)
+	})
+	t.Run("Except Warn", func(t *testing.T) {
+		exceptWarn(t, channel, channelLabel, prefix, message)
+	})
 }
 
 func TestInfo(t *testing.T) {
-	t.Run("Default Info", defaultInfo)
-	t.Run("Only Info", onlyInfo)
-	t.Run("Except Info", exceptInfo)
+	channel := logger.Info
+	message := testInfoMessage
+	channelLabel := logger.InfoChannelLabel
+
+	t.Run("Default Info", func(t *testing.T) {
+		defaultInfo(t, channel, channelLabel, prefix, message)
+	})
+	t.Run("Only Info", func(t *testing.T) {
+		onlyInfo(t, channel, channelLabel, prefix, message)
+	})
+	t.Run("Except Info", func(t *testing.T) {
+		exceptInfo(t, channel, channelLabel, prefix, message)
+	})
 }
 
 func TestDebug(t *testing.T) {
-	t.Run("Default Debug", defaultDebug)
-	t.Run("Only Debug", onlyDebug)
-	t.Run("Except Debug", exceptDebug)
+	channel := logger.Debug
+	message := testDebugMessage
+	channelLabel := logger.DebugChannelLabel
+
+	t.Run("Default Debug", func(t *testing.T) {
+		defaultDebug(t, channel, channelLabel, prefix, message)
+	})
+	t.Run("Only Debug", func(t *testing.T) {
+		onlyDebug(t, channel, channelLabel, prefix, message)
+	})
+	t.Run("Except Debug", func(t *testing.T) {
+		exceptDebug(t, channel, channelLabel, prefix, message)
+	})
 }
