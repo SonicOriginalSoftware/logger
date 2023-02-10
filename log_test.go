@@ -65,7 +65,7 @@ func onlyError(t *testing.T, channel logger.Severity, channelLabel, prefix, mess
 func exceptError(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
 	severity := logger.Warn | logger.Info | logger.Debug
 	writer, testLogger := prepare(severity)
-	testFunction := testLogger.Debug
+	testFunction := testLogger.Error
 
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
@@ -89,7 +89,7 @@ func onlyWarn(t *testing.T, channel logger.Severity, channelLabel, prefix, messa
 func exceptWarn(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
 	severity := logger.Error | logger.Info | logger.Debug
 	writer, testLogger := prepare(severity)
-	testFunction := testLogger.Debug
+	testFunction := testLogger.Warn
 
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
@@ -113,7 +113,7 @@ func onlyInfo(t *testing.T, channel logger.Severity, channelLabel, prefix, messa
 func exceptInfo(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
 	severity := logger.Error | logger.Warn | logger.Debug
 	writer, testLogger := prepare(severity)
-	testFunction := testLogger.Debug
+	testFunction := testLogger.Info
 
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
@@ -160,7 +160,7 @@ func TestError(t *testing.T) {
 }
 
 func TestWarn(t *testing.T) {
-	channel := logger.Error
+	channel := logger.Warn
 	message := testWarnMessage
 	channelLabel := logger.WarnChannelLabel
 
