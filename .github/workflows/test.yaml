@@ -1,0 +1,22 @@
+name: Test
+
+on:
+  push:
+    branches-ignore: [default]
+
+# TODO This should run across all '-latest' platforms
+# Write code coverage results to file
+# Upload file artifact for final processing in a linux-latest system
+# That checks that code coverage matches 100%
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v3
+        with:
+          go-version: "stable"
+
+      - run: go test -v -cover
