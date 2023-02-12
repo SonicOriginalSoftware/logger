@@ -61,7 +61,7 @@ var severityMap = map[severityLabel]Severity{
 }
 
 // DefaultLogger is an unprefixed logger using the default severity
-var DefaultLogger = New("", DefaultSeverity, os.Stdout)
+var DefaultLogger = New("", DefaultSeverity, os.Stdout, os.Stderr)
 
 // Log defines a general logger
 type Log interface {
@@ -96,14 +96,6 @@ func (logger *Logger) handleLogLevel(logLevel severityLabel) {
 	}
 }
 
-func (logger *Logger) determineSeverity() {
-	logger.handleLogLevel(LogLevelDefault)
-	logger.handleLogLevel(LogLevelError)
-	logger.handleLogLevel(LogLevelWarn)
-	logger.handleLogLevel(LogLevelInfo)
-	logger.handleLogLevel(LogLevelDebug)
-}
-
 func new(prefix, defaultPrefix string, writer io.Writer) *log.Logger {
 	if prefix != "" {
 		prefix = fmt.Sprintf("%v[%v] ", defaultPrefix, prefix)
@@ -112,16 +104,20 @@ func new(prefix, defaultPrefix string, writer io.Writer) *log.Logger {
 }
 
 // New returns a valid logger ready for use
-func New(prefix string, severity Severity, writer io.Writer) (logger *Logger) {
+func New(prefix string, severity Severity, stdoutWriter io.Writer, stderrWriter io.Writer) (logger *Logger) {
 	logger = &Logger{
-		warn:     new(prefix, fmt.Sprintf("[%v] ", ChannelLabelWarn), writer),
-		info:     new(prefix, fmt.Sprintf("[%v] ", ChannelLabelInfo), writer),
-		debug:    new(prefix, fmt.Sprintf("[%v] ", ChannelLabelDebug), writer),
-		err:      new(prefix, fmt.Sprintf("[%v] ", ChannelLabelError), writer),
+		warn:     new(prefix, fmt.Sprintf("[%v] ", ChannelLabelWarn), stdoutWriter),
+		info:     new(prefix, fmt.Sprintf("[%v] ", ChannelLabelInfo), stdoutWriter),
+		debug:    new(prefix, fmt.Sprintf("[%v] ", ChannelLabelDebug), stdoutWriter),
+		err:      new(prefix, fmt.Sprintf("[%v] ", ChannelLabelError), stderrWriter),
 		Severity: severity,
 	}
 
-	logger.determineSeverity()
+	logger.handleLogLevel(LogLevelDefault)
+	logger.handleLogLevel(LogLevelError)
+	logger.handleLogLevel(LogLevelWarn)
+	logger.handleLogLevel(LogLevelInfo)
+	logger.handleLogLevel(LogLevelDebug)
 
 	return
 }
