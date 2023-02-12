@@ -25,7 +25,7 @@ type callback func(f string, v ...any)
 
 func prepare(severity logger.Severity) (writer *strings.Builder, testLogger *logger.Logger) {
 	writer = &strings.Builder{}
-	testLogger = logger.New(prefix, severity, writer)
+	testLogger = logger.New(prefix, severity, writer, writer)
 	return
 }
 
