@@ -1,8 +1,9 @@
 name: Test
 
 on:
-  push:
-    branches-ignore: [default]
+  pull_request:
+    branches: [default]
+    types: [synchronize]
 
 # TODO This should run across all '-latest' platforms
 # Write code coverage results to file
