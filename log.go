@@ -29,14 +29,14 @@ const (
 )
 
 const (
-	// ErrorChannelLabel is the prefix used for error messages
-	ErrorChannelLabel string = "ERROR"
-	// WarnChannelLabel is the prefix used for warning messages
-	WarnChannelLabel string = "WARN"
-	// InfoChannelLabel is the prefix used for informational messages
-	InfoChannelLabel string = "INFO"
-	// DebugChannelLabel is the prefix used for debug messages
-	DebugChannelLabel string = "DEBUG"
+	// ChannelLabelError is the prefix used for error messages
+	ChannelLabelError string = "ERROR"
+	// ChannelLabelWarn is the prefix used for warning messages
+	ChannelLabelWarn string = "WARN"
+	// ChannelLabelInfo is the prefix used for informational messages
+	ChannelLabelInfo string = "INFO"
+	// ChannelLabelDebug is the prefix used for debug messages
+	ChannelLabelDebug string = "DEBUG"
 )
 
 const (
@@ -87,13 +87,12 @@ func (logger *Logger) handleLogLevel(logLevel severityLabel) {
 		return
 	}
 
-	// FIXME
-	if state != "0" {
-		// Enable that channel
-		logger.Severity = logger.Severity | severityMap[logLevel]
-	} else {
+	if state == "0" {
 		// Disable that channel
-		logger.Severity = logger.Severity & severityMap[logLevel]
+		logger.Severity &= ^severityMap[logLevel]
+	} else {
+		// Enable that channel
+		logger.Severity |= severityMap[logLevel]
 	}
 }
 
@@ -115,10 +114,10 @@ func new(prefix, defaultPrefix string, writer io.Writer) *log.Logger {
 // New returns a valid logger ready for use
 func New(prefix string, severity Severity, writer io.Writer) (logger *Logger) {
 	logger = &Logger{
-		warn:     new(prefix, fmt.Sprintf("[%v] ", WarnChannelLabel), writer),
-		info:     new(prefix, fmt.Sprintf("[%v] ", InfoChannelLabel), writer),
-		debug:    new(prefix, fmt.Sprintf("[%v] ", DebugChannelLabel), writer),
-		err:      new(prefix, fmt.Sprintf("[%v] ", ErrorChannelLabel), writer),
+		warn:     new(prefix, fmt.Sprintf("[%v] ", ChannelLabelWarn), writer),
+		info:     new(prefix, fmt.Sprintf("[%v] ", ChannelLabelInfo), writer),
+		debug:    new(prefix, fmt.Sprintf("[%v] ", ChannelLabelDebug), writer),
+		err:      new(prefix, fmt.Sprintf("[%v] ", ChannelLabelError), writer),
 		Severity: severity,
 	}
 

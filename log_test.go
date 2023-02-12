@@ -10,10 +10,15 @@ import (
 
 const (
 	prefix           = "Test"
-	testErrorMessage = "Test error message"
-	testWarnMessage  = "Test warn message"
-	testInfoMessage  = "Test info message"
-	testDebugMessage = "Test debug message"
+	testMessageError = "Test error message"
+	testMessageWarn  = "Test warn message"
+	testMessageInfo  = "Test info message"
+	testMessageDebug = "Test debug message"
+
+	enabledValue      = "1"
+	undeterminedValue = "-1"
+	bogusValue        = "bogus"
+	disabledValue     = "0"
 )
 
 type callback func(f string, v ...any)
@@ -46,98 +51,51 @@ func runTest(
 	}
 }
 
-func defaultError(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
-	loggerSeverity := logger.DefaultSeverity
+func testError(t *testing.T, loggerSeverity logger.Severity, channel logger.Severity, channelLabel, prefix, message string) {
 	writer, testLogger := prepare(loggerSeverity)
 	testFunction := testLogger.Error
 
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func onlyError(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
-	severity := logger.Error
-	writer, testLogger := prepare(severity)
+func testWarn(t *testing.T, loggerSeverity logger.Severity, channel logger.Severity, channelLabel, prefix, message string) {
+	writer, testLogger := prepare(loggerSeverity)
+	testFunction := testLogger.Warn
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
+}
+
+func testInfo(t *testing.T, loggerSeverity logger.Severity, channel logger.Severity, channelLabel, prefix, message string) {
+	writer, testLogger := prepare(loggerSeverity)
+	testFunction := testLogger.Info
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
+}
+
+func testDebug(t *testing.T, loggerSeverity logger.Severity, channel logger.Severity, channelLabel, prefix, message string) {
+	writer, testLogger := prepare(loggerSeverity)
+	testFunction := testLogger.Debug
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
+}
+
+func logLevelError(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	writer, testLogger := prepare(logger.DefaultSeverity)
 	testFunction := testLogger.Error
 
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func exceptError(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
-	severity := logger.Warn | logger.Info | logger.Debug
-	writer, testLogger := prepare(severity)
-	testFunction := testLogger.Error
-
-	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
-}
-
-func defaultWarn(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
-	severity := logger.DefaultSeverity
-	writer, testLogger := prepare(severity)
+func logLevelWarn(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	writer, testLogger := prepare(logger.DefaultSeverity)
 	testFunction := testLogger.Warn
 
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func onlyWarn(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
-	severity := logger.Warn
-	writer, testLogger := prepare(severity)
-	testFunction := testLogger.Warn
-
-	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
-}
-
-func exceptWarn(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
-	severity := logger.Error | logger.Info | logger.Debug
-	writer, testLogger := prepare(severity)
-	testFunction := testLogger.Warn
-
-	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
-}
-
-func defaultInfo(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
-	severity := logger.DefaultSeverity
-	writer, testLogger := prepare(severity)
+func logLevelInfo(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	writer, testLogger := prepare(logger.DefaultSeverity)
 	testFunction := testLogger.Info
-
-	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
-}
-
-func onlyInfo(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
-	severity := logger.Info
-	writer, testLogger := prepare(severity)
-	testFunction := testLogger.Info
-
-	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
-}
-
-func exceptInfo(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
-	severity := logger.Error | logger.Warn | logger.Debug
-	writer, testLogger := prepare(severity)
-	testFunction := testLogger.Info
-
-	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
-}
-
-func defaultDebug(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
-	severity := logger.DefaultSeverity
-	writer, testLogger := prepare(severity)
-	testFunction := testLogger.Debug
-
-	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
-}
-
-func onlyDebug(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
-	severity := logger.Debug
-	writer, testLogger := prepare(severity)
-	testFunction := testLogger.Debug
-
-	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
-}
-
-func exceptDebug(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
-	severity := logger.Error | logger.Warn | logger.Info
-	writer, testLogger := prepare(severity)
-	testFunction := testLogger.Debug
 
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
@@ -151,80 +109,169 @@ func logLevelDebug(t *testing.T, channel logger.Severity, channelLabel, prefix, 
 
 func TestError(t *testing.T) {
 	channel := logger.Error
-	channelLabel := logger.ErrorChannelLabel
-	message := testErrorMessage
+	channelLabel := logger.ChannelLabelError
+	message := testMessageError
 
 	t.Run("Default Error", func(t *testing.T) {
-		defaultError(t, channel, channelLabel, prefix, message)
+		testError(t, logger.DefaultSeverity, channel, channelLabel, prefix, message)
 	})
 	t.Run("Only Error", func(t *testing.T) {
-		onlyError(t, channel, channelLabel, prefix, message)
+		testError(t, logger.Error, channel, channelLabel, prefix, message)
 	})
 
 	t.Run("Except Error", func(t *testing.T) {
-		exceptError(t, channel, channelLabel, prefix, message)
+		testError(t, logger.Warn|logger.Info|logger.Debug, channel, channelLabel, prefix, message)
 	})
 }
 
 func TestWarn(t *testing.T) {
 	channel := logger.Warn
-	channelLabel := logger.WarnChannelLabel
-	message := testWarnMessage
+	channelLabel := logger.ChannelLabelWarn
+	message := testMessageWarn
 
 	t.Run("Default Warn", func(t *testing.T) {
-		defaultWarn(t, channel, channelLabel, prefix, message)
+		testWarn(t, logger.DefaultSeverity, channel, channelLabel, prefix, message)
 	})
 	t.Run("Only Warn", func(t *testing.T) {
-		onlyWarn(t, channel, channelLabel, prefix, message)
+		testWarn(t, logger.Warn, channel, channelLabel, prefix, message)
 	})
 	t.Run("Except Warn", func(t *testing.T) {
-		exceptWarn(t, channel, channelLabel, prefix, message)
+		testWarn(t, logger.Error|logger.Info|logger.Debug, channel, channelLabel, prefix, message)
 	})
 }
 
 func TestInfo(t *testing.T) {
 	channel := logger.Info
-	channelLabel := logger.InfoChannelLabel
-	message := testInfoMessage
+	channelLabel := logger.ChannelLabelInfo
+	message := testMessageInfo
 
 	t.Run("Default Info", func(t *testing.T) {
-		defaultInfo(t, channel, channelLabel, prefix, message)
+		testInfo(t, logger.DefaultSeverity, channel, channelLabel, prefix, message)
 	})
 	t.Run("Only Info", func(t *testing.T) {
-		onlyInfo(t, channel, channelLabel, prefix, message)
+		testInfo(t, logger.Info, channel, channelLabel, prefix, message)
 	})
 	t.Run("Except Info", func(t *testing.T) {
-		exceptInfo(t, channel, channelLabel, prefix, message)
+		testInfo(t, logger.Error|logger.Warn|logger.Debug, channel, channelLabel, prefix, message)
 	})
 }
 
 func TestDebug(t *testing.T) {
 	channel := logger.Debug
-	channelLabel := logger.DebugChannelLabel
-	message := testDebugMessage
+	channelLabel := logger.ChannelLabelDebug
+	message := testMessageDebug
 
 	t.Run("Default Debug", func(t *testing.T) {
-		defaultDebug(t, channel, channelLabel, prefix, message)
+		testDebug(t, logger.DefaultSeverity, channel, channelLabel, prefix, message)
 	})
 	t.Run("Only Debug", func(t *testing.T) {
-		onlyDebug(t, channel, channelLabel, prefix, message)
+		testDebug(t, logger.Debug, channel, channelLabel, prefix, message)
 	})
 	t.Run("Except Debug", func(t *testing.T) {
-		exceptDebug(t, channel, channelLabel, prefix, message)
+		testDebug(t, logger.Error|logger.Warn|logger.Info, channel, channelLabel, prefix, message)
 	})
 }
 
-func TestDebugLogLevel(t *testing.T) {
-	channel := logger.Debug
-	channelLabel := logger.DebugChannelLabel
-	message := testDebugMessage
-	const enabledValue = "1"
-	const undeterminedValue = "-1"
-	const bogusValue = "bogus"
-	const disabledValue = "0"
+func TestLogLevelError(t *testing.T) {
+	channel := logger.Error
+	channelLabel := logger.ChannelLabelError
+	message := testMessageError
 
-	t.Run("Default Debug LogLevel", func(t *testing.T) {
+	t.Run("Default Severity Error LogLevel Disabled", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelWarn), disabledValue)
+		logLevelError(t, channel, channelLabel, prefix, message)
+	})
+
+	t.Run("Default Severity Error LogLevel Enabled", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelWarn), enabledValue)
+		logLevelError(t, channel, channelLabel, prefix, message)
+	})
+
+	t.Run("Default Severity Error LogLevel Undetermined", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelWarn), undeterminedValue)
+		logLevelError(t, channel, channelLabel, prefix, message)
+	})
+
+	t.Run("Default Severity Error LogLevel Bogus", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelWarn), bogusValue)
+		logLevelError(t, channel, channelLabel, prefix, message)
+	})
+}
+
+func TestLogLevelWarn(t *testing.T) {
+	channel := logger.Warn
+	channelLabel := logger.ChannelLabelWarn
+	message := testMessageWarn
+
+	t.Run("Default Severity Warn LogLevel Disabled", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelWarn), disabledValue)
+		logLevelWarn(t, channel, channelLabel, prefix, message)
+	})
+
+	t.Run("Default Severity Warn LogLevel Enabled", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelWarn), enabledValue)
+		logLevelWarn(t, channel, channelLabel, prefix, message)
+	})
+
+	t.Run("Default Severity Warn LogLevel Undetermined", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelWarn), undeterminedValue)
+		logLevelWarn(t, channel, channelLabel, prefix, message)
+	})
+
+	t.Run("Default Severity Warn LogLevel Bogus", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelWarn), bogusValue)
+		logLevelWarn(t, channel, channelLabel, prefix, message)
+	})
+}
+
+func TestLogLevelInfo(t *testing.T) {
+	channel := logger.Info
+	channelLabel := logger.ChannelLabelInfo
+	message := testMessageInfo
+
+	t.Run("Default Severity Info LogLevel Disabled", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelInfo), disabledValue)
+		logLevelInfo(t, channel, channelLabel, prefix, message)
+	})
+
+	t.Run("Default Severity Info LogLevel Enabled", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelInfo), enabledValue)
+		logLevelInfo(t, channel, channelLabel, prefix, message)
+	})
+
+	t.Run("Default Severity Info LogLevel Undetermined", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelInfo), undeterminedValue)
+		logLevelInfo(t, channel, channelLabel, prefix, message)
+	})
+
+	t.Run("Default Severity Info LogLevel Bogus", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelInfo), bogusValue)
+		logLevelInfo(t, channel, channelLabel, prefix, message)
+	})
+}
+
+func TestLogLevelDebug(t *testing.T) {
+	channel := logger.Debug
+	channelLabel := logger.ChannelLabelDebug
+	message := testMessageDebug
+
+	t.Run("Default Severity Debug LogLevel Disabled", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelDebug), disabledValue)
+		logLevelDebug(t, channel, channelLabel, prefix, message)
+	})
+
+	t.Run("Default Severity Debug LogLevel Enabled", func(t *testing.T) {
 		t.Setenv(string(logger.LogLevelDebug), enabledValue)
+		logLevelDebug(t, channel, channelLabel, prefix, message)
+	})
+
+	t.Run("Default Severity Debug LogLevel Undetermined", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelDebug), undeterminedValue)
+		logLevelDebug(t, channel, channelLabel, prefix, message)
+	})
+
+	t.Run("Default Severity Debug LogLevel Bogus", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelDebug), bogusValue)
 		logLevelDebug(t, channel, channelLabel, prefix, message)
 	})
 }
