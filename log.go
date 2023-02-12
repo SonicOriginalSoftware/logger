@@ -7,32 +7,58 @@ import (
 	"io"
 	"log"
 	"os"
-	"strconv"
 )
 
 // Severity is an alias for an int64
 type Severity = int64
+
+type severityLabel string
 
 const (
 	Error Severity = 1 << iota // Error shows error log messages
 	Warn                       // Warn shows warning log messages
 	Info                       // Info shows info log messages
 	Debug                      // Debug shows debug log messages
+)
 
-	// ErrorChannelLabel is the prefix used for error messages
-	ErrorChannelLabel = "ERROR"
-	// WarnChannelLabel is the prefix used for warning messages
-	WarnChannelLabel = "WARN"
-	// InfoChannelLabel is the prefix used for informational messages
-	InfoChannelLabel = "INFO"
-	// DebugChannelLabel is the prefix used for debug messages
-	DebugChannelLabel = "DEBUG"
-
-	flags = log.Ldate | log.Ltime | log.Lmsgprefix
-
+const (
 	// DefaultSeverity shows error, warn, and info log messages
 	DefaultSeverity Severity = Error | Warn | Info
+
+	defaultFlags = log.Ldate | log.Ltime | log.Lmsgprefix
 )
+
+const (
+	// ErrorChannelLabel is the prefix used for error messages
+	ErrorChannelLabel string = "ERROR"
+	// WarnChannelLabel is the prefix used for warning messages
+	WarnChannelLabel string = "WARN"
+	// InfoChannelLabel is the prefix used for informational messages
+	InfoChannelLabel string = "INFO"
+	// DebugChannelLabel is the prefix used for debug messages
+	DebugChannelLabel string = "DEBUG"
+)
+
+const (
+	// LogLevelDefault defines an alias for a default log severity
+	LogLevelDefault severityLabel = "LOG_LEVEL_DEFAULT"
+
+	// LogLevelError is the variable for defining the state of the error channel
+	LogLevelError severityLabel = "LOG_LEVEL_ERROR"
+	// LogLevelWarn is the variable for defining the state of the warn channel
+	LogLevelWarn severityLabel = "LOG_LEVEL_WARN"
+	// LogLevelInfo is the variable for defining the state of the info channel
+	LogLevelInfo severityLabel = "LOG_LEVEL_INFO"
+	// LogLevelDebug is the variable for defining the state of the debug channel
+	LogLevelDebug severityLabel = "LOG_LEVEL_DEBUG"
+)
+
+var severityMap = map[severityLabel]Severity{
+	LogLevelError: Error,
+	LogLevelWarn:  Warn,
+	LogLevelInfo:  Info,
+	LogLevelDebug: Debug,
+}
 
 // DefaultLogger is an unprefixed logger using the default severity
 var DefaultLogger = New("", DefaultSeverity, os.Stdout)
@@ -55,26 +81,35 @@ type Logger struct {
 	Severity Severity
 }
 
+func (logger *Logger) handleLogLevel(logLevel severityLabel) {
+	state, defined := os.LookupEnv(string(logLevel))
+	if !defined {
+		return
+	}
+
+	// FIXME
+	if state != "0" {
+		// Enable that channel
+		logger.Severity = logger.Severity | severityMap[logLevel]
+	} else {
+		// Disable that channel
+		logger.Severity = logger.Severity & severityMap[logLevel]
+	}
+}
+
+func (logger *Logger) determineSeverity() {
+	logger.handleLogLevel(LogLevelDefault)
+	logger.handleLogLevel(LogLevelError)
+	logger.handleLogLevel(LogLevelWarn)
+	logger.handleLogLevel(LogLevelInfo)
+	logger.handleLogLevel(LogLevelDebug)
+}
+
 func new(prefix, defaultPrefix string, writer io.Writer) *log.Logger {
 	if prefix != "" {
 		prefix = fmt.Sprintf("%v[%v] ", defaultPrefix, prefix)
 	}
-	return log.New(writer, prefix, flags)
-}
-
-func (logger *Logger) determineSeverity() {
-	var level Severity
-	var err error
-
-	rawLevel, defined := os.LookupEnv("LOGLEVEL")
-	if defined {
-		level, err = strconv.ParseInt(rawLevel, 10, 32)
-	}
-	if !defined || err != nil {
-		level = logger.Severity
-	}
-
-	logger.Severity = level
+	return log.New(writer, prefix, defaultFlags)
 }
 
 // New returns a valid logger ready for use

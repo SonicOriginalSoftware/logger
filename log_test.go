@@ -142,10 +142,17 @@ func exceptDebug(t *testing.T, channel logger.Severity, channelLabel, prefix, me
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
+func logLevelDebug(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+	writer, testLogger := prepare(logger.DefaultSeverity)
+	testFunction := testLogger.Debug
+
+	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
+}
+
 func TestError(t *testing.T) {
 	channel := logger.Error
-	message := testErrorMessage
 	channelLabel := logger.ErrorChannelLabel
+	message := testErrorMessage
 
 	t.Run("Default Error", func(t *testing.T) {
 		defaultError(t, channel, channelLabel, prefix, message)
@@ -161,8 +168,8 @@ func TestError(t *testing.T) {
 
 func TestWarn(t *testing.T) {
 	channel := logger.Warn
-	message := testWarnMessage
 	channelLabel := logger.WarnChannelLabel
+	message := testWarnMessage
 
 	t.Run("Default Warn", func(t *testing.T) {
 		defaultWarn(t, channel, channelLabel, prefix, message)
@@ -177,8 +184,8 @@ func TestWarn(t *testing.T) {
 
 func TestInfo(t *testing.T) {
 	channel := logger.Info
-	message := testInfoMessage
 	channelLabel := logger.InfoChannelLabel
+	message := testInfoMessage
 
 	t.Run("Default Info", func(t *testing.T) {
 		defaultInfo(t, channel, channelLabel, prefix, message)
@@ -193,8 +200,8 @@ func TestInfo(t *testing.T) {
 
 func TestDebug(t *testing.T) {
 	channel := logger.Debug
-	message := testDebugMessage
 	channelLabel := logger.DebugChannelLabel
+	message := testDebugMessage
 
 	t.Run("Default Debug", func(t *testing.T) {
 		defaultDebug(t, channel, channelLabel, prefix, message)
@@ -204,5 +211,20 @@ func TestDebug(t *testing.T) {
 	})
 	t.Run("Except Debug", func(t *testing.T) {
 		exceptDebug(t, channel, channelLabel, prefix, message)
+	})
+}
+
+func TestDebugLogLevel(t *testing.T) {
+	channel := logger.Debug
+	channelLabel := logger.DebugChannelLabel
+	message := testDebugMessage
+	const enabledValue = "1"
+	const undeterminedValue = "-1"
+	const bogusValue = "bogus"
+	const disabledValue = "0"
+
+	t.Run("Default Debug LogLevel", func(t *testing.T) {
+		t.Setenv(string(logger.LogLevelDebug), enabledValue)
+		logLevelDebug(t, channel, channelLabel, prefix, message)
 	})
 }
