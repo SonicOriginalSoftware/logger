@@ -12,6 +12,9 @@ import (
 // Severity is an alias for an int64
 type Severity = int64
 
+// ChannelLabel is an string enumeration of the names of the channels
+type ChannelLabel string
+
 const (
 	Error Severity = 1 << iota // Error shows error log messages
 	Warn                       // Warn shows warning log messages
@@ -24,16 +27,16 @@ const (
 
 const (
 	// ChannelLabelError is the prefix used for error messages
-	ChannelLabelError string = "ERROR"
+	ChannelLabelError ChannelLabel = "ERROR"
 	// ChannelLabelWarn is the prefix used for warning messages
-	ChannelLabelWarn string = "WARN"
+	ChannelLabelWarn ChannelLabel = "WARN"
 	// ChannelLabelInfo is the prefix used for informational messages
-	ChannelLabelInfo string = "INFO"
+	ChannelLabelInfo ChannelLabel = "INFO"
 	// ChannelLabelDebug is the prefix used for debug messages
-	ChannelLabelDebug string = "DEBUG"
+	ChannelLabelDebug ChannelLabel = "DEBUG"
 )
 
-var severityMap = map[string]Severity{
+var severityMap = map[ChannelLabel]Severity{
 	ChannelLabelError: Error,
 	ChannelLabelWarn:  Warn,
 	ChannelLabelInfo:  Info,
@@ -61,12 +64,8 @@ type Logger struct {
 	Severity Severity
 }
 
-func (logger *Logger) setLoggerChannelState(logLevel, state string) {
-	channel, found := severityMap[logLevel]
-
-	if !found {
-		return
-	}
+func (logger *Logger) setLoggerChannelState(channelName ChannelLabel, state string) {
+	channel, _ := severityMap[channelName]
 
 	if state == "0" {
 		// Disable that channel
@@ -77,12 +76,12 @@ func (logger *Logger) setLoggerChannelState(logLevel, state string) {
 	}
 }
 
-func (logger *Logger) handleLogLevel(prefix, logLevel string) {
-	envVariable := fmt.Sprintf("%v_LOG_LEVEL_%v", prefix, logLevel)
+func (logger *Logger) handleLogLevel(prefix string, channelLabel ChannelLabel) {
+	envVariable := fmt.Sprintf("%v_LOG_LEVEL_%v", prefix, channelLabel)
 	state, defined := os.LookupEnv(envVariable)
 
 	if !defined {
-		envVariable = fmt.Sprintf("LOG_LEVEL_%v", logLevel)
+		envVariable = fmt.Sprintf("LOG_LEVEL_%v", channelLabel)
 		state, defined = os.LookupEnv(envVariable)
 	}
 
@@ -90,7 +89,7 @@ func (logger *Logger) handleLogLevel(prefix, logLevel string) {
 		return
 	}
 
-	logger.setLoggerChannelState(logLevel, state)
+	logger.setLoggerChannelState(channelLabel, state)
 }
 
 func new(prefix, defaultPrefix string, writer io.Writer) *log.Logger {

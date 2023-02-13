@@ -34,7 +34,8 @@ func runTest(
 	testLogger *logger.Logger,
 	testCall callback,
 	channel logger.Severity,
-	message, channelLabel string,
+	message string,
+	channelLabel logger.ChannelLabel,
 	writer *strings.Builder,
 ) {
 	testCall(message)
@@ -51,63 +52,63 @@ func runTest(
 	}
 }
 
-func testError(t *testing.T, loggerSeverity logger.Severity, channel logger.Severity, channelLabel, prefix, message string) {
+func testError(t *testing.T, loggerSeverity logger.Severity, channel logger.Severity, channelLabel logger.ChannelLabel, prefix, message string) {
 	writer, testLogger := prepare(loggerSeverity, prefix)
 	testFunction := testLogger.Error
 
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func testWarn(t *testing.T, loggerSeverity logger.Severity, channel logger.Severity, channelLabel, prefix, message string) {
+func testWarn(t *testing.T, loggerSeverity logger.Severity, channel logger.Severity, channelLabel logger.ChannelLabel, prefix, message string) {
 	writer, testLogger := prepare(loggerSeverity, prefix)
 	testFunction := testLogger.Warn
 
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func testInfo(t *testing.T, loggerSeverity logger.Severity, channel logger.Severity, channelLabel, prefix, message string) {
+func testInfo(t *testing.T, loggerSeverity logger.Severity, channel logger.Severity, channelLabel logger.ChannelLabel, prefix, message string) {
 	writer, testLogger := prepare(loggerSeverity, prefix)
 	testFunction := testLogger.Info
 
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func testDebug(t *testing.T, loggerSeverity logger.Severity, channel logger.Severity, channelLabel, prefix, message string) {
+func testDebug(t *testing.T, loggerSeverity logger.Severity, channel logger.Severity, channelLabel logger.ChannelLabel, prefix, message string) {
 	writer, testLogger := prepare(loggerSeverity, prefix)
 	testFunction := testLogger.Debug
 
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func logLevelError(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+func logLevelError(t *testing.T, channel logger.Severity, channelLabel logger.ChannelLabel, prefix, message string) {
 	writer, testLogger := prepare(logger.DefaultSeverity, prefix)
 	testFunction := testLogger.Error
 
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func logLevelWarn(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+func logLevelWarn(t *testing.T, channel logger.Severity, channelLabel logger.ChannelLabel, prefix, message string) {
 	writer, testLogger := prepare(logger.DefaultSeverity, prefix)
 	testFunction := testLogger.Warn
 
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func logLevelInfo(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+func logLevelInfo(t *testing.T, channel logger.Severity, channelLabel logger.ChannelLabel, prefix, message string) {
 	writer, testLogger := prepare(logger.DefaultSeverity, prefix)
 	testFunction := testLogger.Info
 
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func logLevelDebug(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+func logLevelDebug(t *testing.T, channel logger.Severity, channelLabel logger.ChannelLabel, prefix, message string) {
 	writer, testLogger := prepare(logger.DefaultSeverity, prefix)
 	testFunction := testLogger.Debug
 
 	runTest(t, testLogger, testFunction, channel, message, channelLabel, writer)
 }
 
-func prefixedLogger(t *testing.T, channel logger.Severity, channelLabel, prefix, message string) {
+func prefixedLogger(t *testing.T, channel logger.Severity, channelLabel logger.ChannelLabel, prefix, message string) {
 	loggerBDebugLogLevel := fmt.Sprintf("%v_LOG_LEVEL_%v", prefix, logger.ChannelLabelDebug)
 	t.Setenv(loggerBDebugLogLevel, enabledValue)
 
