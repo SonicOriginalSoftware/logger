@@ -38,3 +38,24 @@ The second precedent are `ENV` variables prefixed with `LOG_LEVEL_`. These varia
 - `LOG_LEVEL_ERROR=1 LOG_LEVEL_WARN=0 ...`
 - `LOG_LEVEL_ERROR=0 LOG_LEVEL_DEBUG=0 LOG_LEVEL_INFO=1 ...`
 - `LOG_LEVEL_ERROR=0 LOG_LEVEL_DEBUG=0 LOG_LEVEL_INFO=0 LOG_LEVEL_WARN=1 ...`
+
+# Multiple Loggers
+
+To configure specific loggers, prefix the `ENV` variable with the same prefix used for that logger. Configuration of log levels set for specific loggers will take priority over non-prefixed `LOG_LEVEL_` configuration.
+
+e.g., if you need a `renderLogger` and a `computationalLogger`, you might create them like this
+
+```
+	renderLogger := logger.New("renderer", logger.DefaultSeverity)
+	computeLogger := logger.New("computer", logger.DefaultSeverity)
+```
+
+The default severity may be fine for most situations but for testing you may want additional `DEBUG` log messages from the `computeLogger`.
+
+In that case, in the `ENV` of whatever is running tests, you can define
+
+```
+compute_LOG_LEVEL_DEBUG=1
+```
+
+and the `computeLogger` will additionally show `DEBUG` messages while the `renderLogger` will only show messages under the default severity (`WARN` and `ERROR`).

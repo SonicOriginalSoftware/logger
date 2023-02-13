@@ -4,7 +4,7 @@ on:
   pull_request:
     paths: ["**.go"]
     branches: [default]
-    types: [synchronize]
+    types: [opened, synchronize, edited, reopened]
 
 # TODO This should run across all '-latest' platforms
 # Write code coverage results to file
