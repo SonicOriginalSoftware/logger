@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	logger "git.sonicoriginal.software/logger"
+	logger "git.sonicoriginal.software/logger.git"
 )
 
 const (
